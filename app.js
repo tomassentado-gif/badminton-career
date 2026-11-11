@@ -93,7 +93,6 @@ function playRally(){
   const playerGame=m.gamePlayer>m.gameOpponent;
   m.games.push({you:m.gamePlayer,opponent:m.gameOpponent});
   if(playerGame)m.playerGames++;else m.opponentGames++;
-  m.completedMatches.push({opponent:m.opponent.name,score:m.games.map(g=>g.you+"-"+g.opponent).join(", "),won:playerGame});
   m.gamePlayer=0;m.gameOpponent=0;
   if(m.playerGames===2||m.opponentGames===2){completeTournamentMatch(m.playerGames===2);return}
  }
@@ -101,6 +100,7 @@ function playRally(){
 }
 function completeTournamentMatch(won){
  const m=state.activeTournament,stage=matchStage(m.round),score=m.games.map(g=>g.you+"-"+g.opponent).join(", ");
+ m.completedMatches.push({opponent:m.opponent.name,score,won});
  if(!won){state.losses++;finishTournament(stage,false,score);return}
  state.wins++;state.attributes.Mental=Math.min(100,state.attributes.Mental+1);
  if(m.round===2){finishTournament("Winner",true,score);return}
