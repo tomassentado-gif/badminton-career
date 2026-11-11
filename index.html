@@ -5,78 +5,134 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101b2d">
   <meta name="description" content="Build your badminton career, train, compete and climb the world rankings.">
-  <title>Badminton Career</title>
+  <title>Badminton Career — Pro Career Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#" aria-label="Badminton Career home"><span class="brand-mark">BC</span><span>BADMINTON<span class="brand-light"> CAREER</span></span></a>
-      <div class="top-meta"><span class="live-dot"></span><span id="season-label">NEW CAREER</span></div>
-    </header>
-
-    <main>
-      <section id="start-screen" class="start-screen">
-        <div class="hero-copy">
-          <p class="eyebrow">YOUR JOURNEY STARTS HERE</p>
-          <h1>Every champion<br>starts <em>somewhere.</em></h1>
-          <p class="hero-sub">Build your player. Shape your career. Earn your place among the best in the world.</p>
-          <div class="feature-row"><span>01 / TRAIN</span><span>02 / COMPETE</span><span>03 / RISE</span></div>
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Badminton Career home"><span class="brand-mark">BC</span><span>BADMINTON<span class="brand-light"> CAREER</span></span></a>
+    <div class="top-meta"><span class="live-dot"></span><span id="season-label">NEW CAREER</span></div>
+  </header>
+  <main>
+    <section id="start-screen" class="start-screen">
+      <div class="hero-copy">
+        <p class="eyebrow">THE ROAD TO THE TOP</p>
+        <h1>Build your<br><em>badminton</em> legacy.</h1>
+        <p class="hero-sub">Start as a young prospect. Train with purpose, manage your season, take on the circuit and become a world-class player.</p>
+        <div class="feature-row"><span>01 / DEVELOP</span><span>02 / COMPETE</span><span>03 / BECOME</span></div>
+      </div>
+      <form id="create-form" class="create-card">
+        <div class="card-kicker">PLAYER REGISTRATION <span>CAREER MODE</span></div>
+        <h2>Create your player</h2>
+        <label for="player-name">Player name</label><input id="player-name" maxlength="24" placeholder="Your name" required>
+        <div class="form-grid">
+          <div><label for="player-age">Age</label><input id="player-age" type="number" min="13" max="35" value="17" required></div>
+          <div><label for="player-country">Country</label><select id="player-country"><option>Portugal</option><option>Denmark</option><option>France</option><option>England</option><option>Spain</option><option>India</option><option>Japan</option><option>China</option><option>Malaysia</option><option>Other</option></select></div>
         </div>
-        <form id="create-form" class="create-card">
-          <div class="card-kicker">PLAYER REGISTRATION <span>01 — 04</span></div>
-          <h2>Create your player</h2>
-          <label for="player-name">Player name</label>
-          <input id="player-name" name="player-name" maxlength="24" placeholder="Your name" required>
-          <div class="form-grid">
-            <div><label for="player-age">Age</label><input id="player-age" type="number" min="13" max="35" value="17" required></div>
-            <div><label for="player-country">Country</label><select id="player-country"><option value="Portugal">Portugal</option><option value="Denmark">Denmark</option><option value="France">France</option><option value="England">England</option><option value="Spain">Spain</option><option value="India">India</option><option value="Japan">Japan</option><option value="Other">Other</option></select></div>
+        <label for="player-discipline">Main discipline</label>
+        <select id="player-discipline"><option>Men's Singles</option><option>Women's Singles</option><option>Men's Doubles</option><option>Women's Doubles</option><option>Mixed Doubles</option></select>
+        <label for="start-level">Starting level</label>
+        <select id="start-level"><option value="academy">Academy prospect — balanced start</option><option value="talent">National talent — stronger start</option><option value="challenger">International challenger — harder start</option></select>
+        <button class="primary-btn" type="submit">START CAREER <span>↗</span></button>
+        <p class="fine-print">Your decisions shape your career. Every season counts.</p>
+      </form>
+    </section>
+
+    <section id="career-screen" class="career-screen hidden">
+      <aside class="sidebar">
+        <div class="side-player"><div class="avatar" id="avatar-initials">BC</div><div><b id="side-name">Player</b><small id="side-discipline">Singles</small></div></div>
+        <nav class="main-nav" aria-label="Main navigation">
+          <button class="nav-item active" data-page="overview"><span>▦</span> Overview</button>
+          <button class="nav-item" data-page="training"><span>⌁</span> Training</button>
+          <button class="nav-item" data-page="calendar"><span>▦</span> Calendar</button>
+          <button class="nav-item" data-page="tournaments"><span>♜</span> Tournaments</button>
+          <button class="nav-item" data-page="profile"><span>◉</span> Player profile</button>
+        </nav>
+        <div class="sidebar-bottom"><span class="live-dot"></span><span>CAREER AUTOSAVE ON</span></div>
+      </aside>
+
+      <div class="workspace">
+        <div class="page-topline"><span id="date-line">SEASON 2026 · WEEK 01</span><button id="save-indicator" class="save-indicator">● SAVED</button></div>
+
+        <section class="page active" id="page-overview">
+          <div class="welcome-row"><div><p class="eyebrow">PLAYER DASHBOARD</p><h1 id="welcome-title">Welcome back.</h1><p id="player-subtitle" class="muted"></p></div><div class="season-chip"><span>CURRENT SEASON</span><strong id="season-number">2026</strong></div></div>
+          <div class="stats-grid">
+            <article class="stat-card"><span>WORLD RANKING</span><strong id="ranking">#—</strong><small id="points">0 ranking points</small></article>
+            <article class="stat-card"><span>PLAYER LEVEL</span><strong id="level">Junior</strong><small id="age-stat">Age 17</small></article>
+            <article class="stat-card"><span>WIN / LOSS</span><strong id="record">0–0</strong><small id="win-rate">No matches played</small></article>
+            <article class="stat-card"><span>CAREER EARNINGS</span><strong id="money">€0</strong><small>Prize money</small></article>
           </div>
-          <label for="player-discipline">Main discipline</label>
-          <select id="player-discipline"><option value="Men's Singles">Men's Singles</option><option value="Women's Singles">Women's Singles</option><option value="Men's Doubles">Men's Doubles</option><option value="Women's Doubles">Women's Doubles</option><option value="Mixed Doubles">Mixed Doubles</option></select>
-          <button class="primary-btn" type="submit">START YOUR CAREER <span>↗</span></button>
-          <p class="fine-print">Your career. Your decisions. Your legacy.</p>
-        </form>
-      </section>
+          <div class="overview-grid">
+            <section class="panel focus-panel">
+              <div class="panel-heading"><div><p class="eyebrow">YOUR NEXT STEP</p><h2>This week's focus</h2></div><span class="week-label" id="week-label">WEEK 01</span></div>
+              <div class="focus-content"><div class="focus-icon">↗</div><div><b id="focus-title">Build your foundations</b><p id="focus-copy" class="muted">Complete training sessions and prepare for your first competition.</p></div></div>
+              <div class="progress-track"><i id="week-progress"></i></div>
+              <div class="focus-footer"><span id="sessions-count">0 / 5 sessions completed</span><button class="inline-link" data-goto="training">OPEN TRAINING →</button></div>
+            </section>
+            <section class="panel condition-panel">
+              <div class="panel-heading"><div><p class="eyebrow">PLAYER CONDITION</p><h2>How you're feeling</h2></div></div>
+              <div class="condition-big"><strong id="energy-value">85%</strong><span>ENERGY</span></div>
+              <div class="meter"><i id="energy-meter"></i></div>
+              <div class="condition-details"><span>Fitness <b id="fitness-value">70</b></span><span>Form <b id="form-value">50</b></span><span>Morale <b id="morale-value">70</b></span></div>
+            </section>
+            <section class="panel next-event-panel">
+              <div class="panel-heading"><div><p class="eyebrow">ON THE HORIZON</p><h2>Next tournament</h2></div><span class="status-pill">UPCOMING</span></div>
+              <div id="next-event-content"></div>
+              <button class="secondary-btn" data-goto="calendar">VIEW SEASON CALENDAR <span>→</span></button>
+            </section>
+            <section class="panel activity-panel">
+              <div class="panel-heading"><div><p class="eyebrow">CAREER STORY</p><h2>Recent activity</h2></div></div>
+              <div id="activity-list" class="activity-list"></div>
+            </section>
+          </div>
+        </section>
 
-      <section id="career-screen" class="career-screen hidden">
-        <div class="welcome-row"><div><p class="eyebrow">PLAYER OVERVIEW</p><h1 id="welcome-title">Welcome back.</h1><p id="player-subtitle" class="muted"></p></div><div class="season-chip"><span>SEASON</span><strong id="season-number">2026</strong></div></div>
-        <div class="stats-grid">
-          <article class="stat-card"><span>WORLD RANKING</span><strong id="ranking">#—</strong><small id="points">0 points</small></article>
-          <article class="stat-card"><span>PLAYER LEVEL</span><strong id="level">Junior</strong><small id="age-stat">Age 17</small></article>
-          <article class="stat-card"><span>CAREER RECORD</span><strong id="record">0–0</strong><small>Wins — Losses</small></article>
-          <article class="stat-card"><span>PRIZE MONEY</span><strong id="money">€0</strong><small>Career earnings</small></article>
-        </div>
-        <div class="main-grid">
-          <section class="panel training-panel">
-            <div class="panel-heading"><div><p class="eyebrow">WEEKLY PLANNER</p><h2>Plan your week</h2></div><span class="week-label" id="week-label">WEEK 01</span></div>
-            <p class="muted">Choose your focus. Every session affects your development and condition.</p>
-            <div class="training-options">
-              <button class="training-option selected" data-training="technical"><span class="option-icon">⌁</span><span><b>Technical</b><small>Shot quality & consistency</small></span><span class="option-check">✓</span></button>
-              <button class="training-option" data-training="physical"><span class="option-icon">↗</span><span><b>Physical</b><small>Speed, power & endurance</small></span><span class="option-check">✓</span></button>
-              <button class="training-option" data-training="tactical"><span class="option-icon">◎</span><span><b>Tactical</b><small>Game intelligence & strategy</small></span><span class="option-check">✓</span></button>
-              <button class="training-option" data-training="recovery"><span class="option-icon">＋</span><span><b>Recovery</b><small>Restore energy & condition</small></span><span class="option-check">✓</span></button>
-            </div>
-            <div class="condition-row"><span>ENERGY</span><div class="meter"><i id="energy-meter"></i></div><b id="energy-value">85%</b></div>
-            <button id="advance-week" class="primary-btn">COMPLETE WEEK <span>→</span></button>
-          </section>
-          <section class="panel attributes-panel">
-            <div class="panel-heading"><div><p class="eyebrow">PLAYER DEVELOPMENT</p><h2>Attributes</h2></div><span class="muted">/ 100</span></div>
-            <div id="attributes-list"></div>
-          </section>
-          <section class="panel tournament-panel">
-            <div class="panel-heading"><div><p class="eyebrow">THE NEXT CHALLENGE</p><h2>Upcoming tournament</h2></div><span class="status-pill">OPEN</span></div>
-            <div class="event-card"><div class="event-date"><b id="event-day">18</b><span id="event-month">NOV</span></div><div class="event-info"><b id="event-name">Portugal Junior International</b><small id="event-type">International · Junior</small></div><span class="event-level">JUNIOR</span></div>
-            <p class="muted event-description">Take your first step on the international circuit. Prepare well and compete for ranking points.</p>
-            <button id="enter-tournament" class="secondary-btn">ENTER TOURNAMENT <span>↗</span></button>
-          </section>
-          <section class="panel activity-panel"><div class="panel-heading"><div><p class="eyebrow">CAREER TIMELINE</p><h2>Recent activity</h2></div></div><div id="activity-list" class="activity-list"><p class="muted">Your career story will appear here.</p></div></section>
-        </div>
-        <footer class="career-footer"><span>BADMINTON CAREER <span class="muted">· PROTOTYPE 0.1</span></span><button id="reset-career" class="text-btn">RESET CAREER</button></footer>
-      </section>
-    </main>
-  </div>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js"></script>
-</body>
-</html>
+        <section class="page" id="page-training">
+          <div class="page-heading"><p class="eyebrow">PLAYER DEVELOPMENT</p><h1>Training centre</h1><p class="muted">Build your week session by session. Balance improvement with recovery.</p></div>
+          <div class="training-layout">
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">WEEKLY PROGRAMME</p><h2>Choose your sessions</h2></div><span class="week-label" id="training-week">WEEK 01</span></div>
+              <div class="session-list" id="session-list"></div>
+              <div class="training-actions"><span id="training-summary">0 of 5 sessions planned</span><button id="complete-training" class="primary-btn">COMPLETE TRAINING WEEK <span>→</span></button></div>
+            </section>
+            <section class="panel training-guide">
+              <p class="eyebrow">COACH'S NOTE</p><h2 id="coach-title">A strong base wins seasons.</h2><p id="coach-copy" class="muted">A balanced programme develops every part of your game. Avoid stacking too much intensity without recovery.</p>
+              <div class="coach-tip"><b>TRAINING TIP</b><span id="training-tip">Technical consistency is the foundation of reliable performance.</span></div>
+              <div class="mini-condition"><span>ENERGY</span><div class="meter"><i id="training-energy-meter"></i></div><b id="training-energy-value">85%</b></div>
+            </section>
+          </div>
+          <section class="panel attributes-panel"><div class="panel-heading"><div><p class="eyebrow">PLAYER DEVELOPMENT</p><h2>Your attributes</h2></div><span class="muted">MAX 100</span></div><div id="attributes-list" class="attributes-grid"></div></section>
+        </section>
+
+        <section class="page" id="page-calendar">
+          <div class="page-heading"><p class="eyebrow">SEASON MANAGEMENT</p><h1>Season calendar</h1><p class="muted">Plan your season, manage your workload and choose the tournaments that matter.</p></div>
+          <div class="calendar-summary" id="calendar-summary"></div>
+          <section class="panel"><div class="panel-heading"><div><p class="eyebrow">YOUR SEASON</p><h2>Competition schedule</h2></div><span class="week-label" id="calendar-year">2026</span></div><div id="calendar-list" class="calendar-list"></div></section>
+        </section>
+
+        <section class="page" id="page-tournaments">
+          <div class="page-heading"><p class="eyebrow">THE COMPETITIVE CIRCUIT</p><h1>Tournaments</h1><p class="muted">Choose your events carefully. Ranking points, prize money and experience are on the line.</p></div>
+          <div class="tournament-filters"><span>AVAILABLE EVENTS</span><span id="events-count">0 EVENTS</span></div>
+          <div id="tournament-list" class="tournament-list"></div>
+        </section>
+
+        <section class="page" id="page-profile">
+          <div class="page-heading"><p class="eyebrow">THE ATHLETE</p><h1>Player profile</h1><p class="muted">Your identity, career statistics and long-term progress.</p></div>
+          <div class="profile-layout">
+            <section class="panel profile-card"><div class="profile-avatar" id="profile-avatar">BC</div><h2 id="profile-name">Player name</h2><p id="profile-subtitle" class="muted"></p><div class="profile-tags"><span id="profile-country">Portugal</span><span id="profile-discipline">Singles</span></div><div class="profile-level"><span>CAREER LEVEL</span><b id="profile-level">Junior prospect</b></div></section>
+            <section class="panel"><div class="panel-heading"><div><p class="eyebrow">CAREER RECORD</p><h2>Statistics</h2></div></div><div id="career-stats" class="career-stats"></div></section>
+          </div>
+          <section class="panel"><div class="panel-heading"><div><p class="eyebrow">CAREER MANAGEMENT</p><h2>Save & settings</h2></div></div><p class="muted">Your progress is saved automatically in this browser. Resetting will permanently clear this career on this device.</p><button id="reset-career" class="danger-btn">RESET CAREER</button></section>
+        </section>
+        <footer class="career-footer"><span>BADMINTON CAREER <span class="muted">· CAREER MODE 1.0</span></span><span>MADE FOR THE LOVE OF THE GAME</span></footer>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body></html>
