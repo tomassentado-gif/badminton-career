@@ -81,8 +81,8 @@ function enterTournament(id){
  const t=eventById(id);if(!t)return;if(state.energy<t.energy){toast("Not enough energy for this event. Recover before competing.");return}
  if(t.week>state.week){toast("This tournament is not open yet. Advance your training weeks first.");return}
  const avg=Object.values(state.attributes).reduce((a,b)=>a+b,0)/6;
- const readiness=(state.energy*.12+state.form*.18+state.fitness*.12+state.morale*.08+avg*.5);
- const chance=Math.max(.08,Math.min(.9,.52+(readiness-t.difficulty-48)/100));
+ const readiness=avg+(state.form-50)*.12+(state.fitness-70)*.08+(state.morale-70)*.08;
+ const chance=Math.max(.12,Math.min(.82,.48+(readiness-t.difficulty)*.018));
  const roll=Math.random();let outcome,stage,won;
  if(roll<chance*.22){won=true;stage="Winner";outcome="CHAMPION";}else if(roll<chance*.48){won=true;stage="Final";outcome="FINALIST";}else if(roll<chance*.72){won=true;stage="Semi-final";outcome="SEMI-FINAL";}else if(roll<chance){won=true;stage="Quarter-final";outcome="QUARTER-FINAL";}else{won=false;stage="Early rounds";outcome="EARLY EXIT";}
  const earned=won?Math.round(t.points*(stage==="Winner"?1:stage==="Final"?.72:stage==="Semi-final"?.48:.25)):Math.round(t.points*.05);
