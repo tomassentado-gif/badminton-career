@@ -85,8 +85,8 @@ function enterTournament(id){
  const chance=Math.max(.12,Math.min(.82,.48+(readiness-t.difficulty)*.018));
  const roll=Math.random();let outcome,stage,won;
  if(roll<chance*.22){won=true;stage="Winner";outcome="CHAMPION";}else if(roll<chance*.48){won=true;stage="Final";outcome="FINALIST";}else if(roll<chance*.72){won=true;stage="Semi-final";outcome="SEMI-FINAL";}else if(roll<chance){won=true;stage="Quarter-final";outcome="QUARTER-FINAL";}else{won=false;stage="Early rounds";outcome="EARLY EXIT";}
- const earned=won?Math.round(t.points*(stage==="Winner"?1:stage==="Final"?.72:stage==="Semi-final"?.48:.25)):Math.round(t.points*.05);
- const prize=won?Math.round(t.prize*(stage==="Winner"?1:stage==="Final"?.6:stage==="Semi-final"?.3:.12)):0;
+ const earned=won?Math.round(t.points*(stage==="Winner"?1:stage==="Final"? .72:stage==="Semi-final"? .48:.25)):Math.round(t.points*.05);
+ const prize=won?Math.round(t.prize*(stage==="Winner"?1:stage==="Final"? .6:stage==="Semi-final"? .3:.12)):0;
  state.energy=Math.max(8,state.energy-t.energy);state.form=Math.max(20,Math.min(100,state.form+(won?5:-5)));state.morale=Math.max(15,Math.min(100,state.morale+(won?6:-7)));state.points+=earned;state.money+=prize;
  if(won){state.wins++;state.ranking=Math.max(1,state.ranking-Math.max(2,Math.round(earned/4)));state.attributes.Mental=Math.min(100,state.attributes.Mental+1)}else{state.losses++;state.ranking+=Math.max(1,Math.round(t.points/100))}
  state.results.push({id:t.id,outcome,stage,earned,prize});state.entered.push(id);log(t.name+": "+outcome,stage+" · +"+earned+" points · €"+prize);save();renderAll();goTo("tournaments");toast(t.name+": "+outcome+"!");
