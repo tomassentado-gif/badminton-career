@@ -1,13 +1,18 @@
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = "badmintonCareerSaveV1";
 const tournaments = [
- {id:"local-open",name:"National Junior Open",country:"Portugal",city:"Lisbon",week:3,tier:"National",level:"Junior",points:80,prize:100,energy:24,difficulty:42},
- {id:"iberian",name:"Iberian Junior Challenge",country:"Spain",city:"Oviedo",week:7,tier:"International",level:"Junior",points:160,prize:220,energy:28,difficulty:49},
- {id:"european",name:"European Junior Circuit",country:"Denmark",city:"Odense",week:12,tier:"International",level:"Junior",points:260,prize:400,energy:32,difficulty:57},
- {id:"national-champ",name:"National Championships",country:"Portugal",city:"Porto",week:19,tier:"National",level:"Senior",points:220,prize:350,energy:30,difficulty:55},
- {id:"future-series",name:"Future Series",country:"France",city:"Paris",week:27,tier:"International",level:"Senior",points:420,prize:700,energy:35,difficulty:66},
- {id:"world-tour",name:"International Challenge",country:"Malaysia",city:"Kuala Lumpur",week:36,tier:"International",level:"Senior",points:650,prize:1200,energy:38,difficulty:75},
- {id:"finals",name:"Season Finals",country:"Portugal",city:"Caldas da Rainha",week:48,tier:"National",level:"Senior",points:300,prize:500,energy:30,difficulty:62}
+ {id:"regional-1",name:"Regional Circuit — North",country:"Portugal",city:"Porto",week:2,tier:"Regional",level:"Junior",points:25,prize:35,energy:15,difficulty:35},
+ {id:"local-open",name:"National Junior Open",country:"Portugal",city:"Lisbon",week:4,tier:"National",level:"Junior",points:80,prize:100,energy:24,difficulty:42},
+ {id:"regional-2",name:"Regional Circuit — Centre",country:"Portugal",city:"Coimbra",week:7,tier:"Regional",level:"Junior",points:30,prize:40,energy:16,difficulty:38},
+ {id:"iberian",name:"Iberian Junior Challenge",country:"Spain",city:"Oviedo",week:9,tier:"International",level:"Junior",points:160,prize:220,energy:28,difficulty:49},
+ {id:"regional-3",name:"Regional Circuit — South",country:"Portugal",city:"Setúbal",week:12,tier:"Regional",level:"Junior",points:35,prize:45,energy:17,difficulty:40},
+ {id:"european",name:"European Junior Circuit",country:"Denmark",city:"Odense",week:16,tier:"International",level:"Junior",points:260,prize:400,energy:32,difficulty:57},
+ {id:"national-champ",name:"National Championships",country:"Portugal",city:"Porto",week:20,tier:"National",level:"Senior",points:220,prize:350,energy:30,difficulty:55},
+ {id:"regional-4",name:"Regional Circuit — North II",country:"Portugal",city:"Braga",week:24,tier:"Regional",level:"Senior",points:40,prize:55,energy:18,difficulty:44},
+ {id:"future-series",name:"Future Series",country:"France",city:"Paris",week:28,tier:"International",level:"Senior",points:420,prize:700,energy:35,difficulty:66},
+ {id:"regional-5",name:"Regional Circuit — National Qualifier",country:"Portugal",city:"Aveiro",week:33,tier:"Regional",level:"Senior",points:45,prize:60,energy:18,difficulty:47},
+ {id:"world-tour",name:"International Challenge",country:"Malaysia",city:"Kuala Lumpur",week:38,tier:"International",level:"Senior",points:650,prize:1200,energy:38,difficulty:75},
+ {id:"finals",name:"National Season Finals",country:"Portugal",city:"Caldas da Rainha",week:48,tier:"National",level:"Senior",points:300,prize:500,energy:30,difficulty:62}
 ];
 const sessionTypes = [
  {id:"technical",name:"Technical court session",desc:"Shot quality, consistency and control",icon:"⌁",energy:10,attrs:{Technique:2,Tactics:1},type:"Court"},
@@ -16,10 +21,10 @@ const sessionTypes = [
  {id:"match",name:"Match practice",desc:"Pressure, consistency and competition rhythm",icon:"♜",energy:14,attrs:{Technique:1,Mental:2,Tactics:1},type:"Court"},
  {id:"recovery",name:"Recovery & mobility",desc:"Restore energy and protect your condition",icon:"＋",energy:-30,attrs:{Stamina:1},type:"Recovery"}
 ];
-const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:1500,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,trainingDone:false,club:"independent",coach:"none",weeklyIncome:0,weeklyCosts:0,prizeTotal:0,callups:[],ledger:[],attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],activeTournament:null,lastFocus:"Build your foundations"});
+const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:1500,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,trainingDone:false,developmentXP:{Technique:0,Speed:0,Power:0,Stamina:0,Tactics:0,Mental:0},club:"independent",coach:"none",weeklyIncome:0,weeklyCosts:0,prizeTotal:0,callups:[],ledger:[],teamBudget:0,staff:{},sponsorOffers:[],sponsorContracts:[],attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],activeTournament:null,lastFocus:"Build your foundations"});
 let state = loadState() || freshState();
 state=Object.assign(freshState(),state,{attributes:Object.assign(freshState().attributes,state.attributes||{})});
-state.callups=state.callups||[];state.ledger=state.ledger||[];state.trainingDone=!!state.trainingDone;state.club=state.club||"independent";state.coach=state.coach||"none";state.weeklyIncome=state.weeklyIncome||0;state.weeklyCosts=state.weeklyCosts||0;state.prizeTotal=state.prizeTotal||0;state.activeTournament=state.activeTournament||null;
+state.callups=state.callups||[];state.ledger=state.ledger||[];state.trainingDone=!!state.trainingDone;state.club=state.club||"independent";state.coach=state.coach||"none";state.weeklyIncome=state.weeklyIncome||0;state.weeklyCosts=state.weeklyCosts||0;state.prizeTotal=state.prizeTotal||0;state.activeTournament=state.activeTournament||null;state.developmentXP=Object.assign({Technique:0,Speed:0,Power:0,Stamina:0,Tactics:0,Mental:0},state.developmentXP||{});state.teamBudget=Number(state.teamBudget)||0;state.staff=state.staff||{};state.sponsorOffers=state.sponsorOffers||[];state.sponsorContracts=state.sponsorContracts||[];
 function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));$("save-indicator").textContent="● SAVED"}catch(e){$("save-indicator").textContent="● SAVE ERROR"}}
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2400)}
@@ -29,7 +34,8 @@ function log(title,detail){state.activity.unshift({title,detail,week:state.week,
 function dateForWeek(week){const d=new Date(state.year,0,1);d.setDate(d.getDate()+(week-1)*7);return d}
 function shortDate(week){return dateForWeek(week).toLocaleDateString("en-GB",{day:"2-digit",month:"short"}).toUpperCase()}
 function eventById(id){return tournaments.find(t=>t.id===id)}
-function nextEvent(){return tournaments.find(t=>t.week>=state.week&&!state.results.some(r=>r.id===t.id))||null}
+function visibleTournaments(){return tournaments.filter(t=>state.callups.length||t.tier!=="International")}
+function nextEvent(){return visibleTournaments().find(t=>t.week>=state.week&&!state.results.some(r=>r.id===t.id))||null}
 function goTo(page){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$("page-"+page).classList.add("active");document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===page));renderPage(page);window.scrollTo({top:0,behavior:"smooth"})}
 function renderActivity(){$("activity-list").innerHTML=state.activity.length?state.activity.slice(0,5).map(a=>'<div class="activity-item"><i class="activity-dot"></i><div><b>'+a.title+'</b><small>'+a.detail+'</small></div></div>').join(""):'<p class="muted">Your career story will appear here. Start training to make your mark.</p>'}
 function renderAttributes(){const names={Technique:"Technique",Speed:"Speed",Power:"Power",Stamina:"Stamina",Tactics:"Tactics",Mental:"Mental"};$("attributes-list").innerHTML=Object.entries(state.attributes).map(([key,value])=>'<div class="attribute"><span>'+names[key]+'</span><div class="attribute-meter"><i style="width:'+value+'%"></i></div><b>'+value+'</b></div>').join("")}
@@ -54,15 +60,15 @@ function renderTraining(){
  document.querySelectorAll(".session-option").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.session;const index=state.trainingPlan.indexOf(id);if(index>=0)state.trainingPlan.splice(index,1);else if(state.trainingPlan.length<5)state.trainingPlan.push(id);else{toast("Your week is full. Remove a session first.");return}save();renderTraining();renderOverview()}));
 }
 function renderCalendar(){
- const upcoming=tournaments.filter(t=>t.week>=state.week&&!state.results.some(r=>r.id===t.id)).length,played=state.results.length;
+ const upcoming=visibleTournaments().filter(t=>t.week>=state.week&&!state.results.some(r=>r.id===t.id)).length,played=state.results.length;
  $("calendar-summary").innerHTML='<div class="summary-tile"><span>EVENTS THIS SEASON</span><b>'+tournaments.length+'</b></div><div class="summary-tile"><span>COMPLETED</span><b>'+played+'</b></div><div class="summary-tile"><span>UPCOMING</span><b>'+upcoming+'</b></div>';
  $("calendar-year").textContent=state.year;
- $("calendar-list").innerHTML=tournaments.map(t=>{const result=state.results.find(r=>r.id===t.id);const past=t.week<state.week&&!result;return '<div class="calendar-event"><div class="calendar-date"><b>'+String(t.week).padStart(2,"0")+'</b><span>'+shortDate(t.week).split(" ")[1]+'</span></div><div class="calendar-event-info"><b>'+t.name+'</b><small>'+t.city+', '+t.country+' · '+t.tier+' · '+t.points+' ranking points</small></div><span class="event-status '+(result||past?"completed":"")+'">'+(result?result.outcome:past?"MISSED":"UPCOMING")+'</span></div>'}).join("");
+ $("calendar-list").innerHTML=visibleTournaments().map(t=>{const result=state.results.find(r=>r.id===t.id);const past=t.week<state.week&&!result;return '<div class="calendar-event"><div class="calendar-date"><b>'+String(t.week).padStart(2,"0")+'</b><span>'+shortDate(t.week).split(" ")[1]+'</span></div><div class="calendar-event-info"><b>'+t.name+'</b><small>'+t.city+', '+t.country+' · '+t.tier+' · '+t.points+' ranking points</small></div><span class="event-status '+(result||past?"completed":"")+'">'+(result?result.outcome:past?"MISSED":"UPCOMING")+'</span></div>'}).join("");
 }
 function renderTournaments(){
- const available=tournaments.filter(t=>t.week>=state.week&&!state.results.some(r=>r.id===t.id));$("events-count").textContent=available.length+" EVENTS";
+ const available=visibleTournaments().filter(t=>t.week>=state.week&&!state.results.some(r=>r.id===t.id));$("events-count").textContent=available.length+" EVENTS";
  renderLiveTournament();
- $("tournament-list").innerHTML=tournaments.map(t=>{const result=state.results.find(r=>r.id===t.id);const missed=t.week<state.week&&!result;const due=t.week===state.week;const disabled=!!result||missed||!due||state.energy<15||!!state.activeTournament;return '<article class="tournament-card"><div class="tournament-card-top"><span class="tier-tag">'+t.tier.toUpperCase()+' · '+t.level.toUpperCase()+'</span><span class="week-label">WEEK '+String(t.week).padStart(2,"0")+'</span></div><h2>'+t.name+'</h2><p>'+t.city+', '+t.country+' · '+shortDate(t.week)+'</p><div class="tournament-facts"><span><b>'+t.points+'</b> pts</span><span><b>€'+t.prize+'</b> prize</span><span><b>'+t.energy+'%</b> energy</span></div>'+(result?'<div class="event-status">'+result.outcome+' · '+result.stage+'</div>':missed?'<div class="event-status completed">EVENT MISSED</div>':state.activeTournament&&state.activeTournament.id===t.id?'<div class="event-status">TOURNAMENT IN PROGRESS</div>':'<button class="secondary-btn enter-event" data-event="'+t.id+'" '+(disabled?'disabled':'')+'>'+(due?'START TOURNAMENT':'AVAILABLE IN WEEK '+t.week)+' <span>↗</span></button>')+'</article>'}).join("");
+ $("tournament-list").innerHTML=visibleTournaments().map(t=>{const result=state.results.find(r=>r.id===t.id);const missed=t.week<state.week&&!result;const due=t.week===state.week;const disabled=!!result||missed||!due||state.energy<15||!!state.activeTournament;return '<article class="tournament-card"><div class="tournament-card-top"><span class="tier-tag">'+t.tier.toUpperCase()+' · '+t.level.toUpperCase()+'</span><span class="week-label">WEEK '+String(t.week).padStart(2,"0")+'</span></div><h2>'+t.name+'</h2><p>'+t.city+', '+t.country+' · '+shortDate(t.week)+'</p><div class="tournament-facts"><span><b>'+t.points+'</b> pts</span><span><b>€'+t.prize+'</b> prize</span><span><b>'+t.energy+'%</b> energy</span></div>'+(result?'<div class="event-status">'+result.outcome+' · '+result.stage+'</div>':missed?'<div class="event-status completed">EVENT MISSED</div>':state.activeTournament&&state.activeTournament.id===t.id?'<div class="event-status">TOURNAMENT IN PROGRESS</div>':'<button class="secondary-btn enter-event" data-event="'+t.id+'" '+(disabled?'disabled':'')+'>'+(due?'START TOURNAMENT':'AVAILABLE IN WEEK '+t.week)+' <span>↗</span></button>')+'</article>'}).join("");
  document.querySelectorAll(".enter-event").forEach(btn=>btn.addEventListener("click",()=>enterTournament(btn.dataset.event)));
 }
 const tournamentOpponents=[
@@ -136,8 +142,8 @@ function renderPage(page){if(page==="overview")renderOverview();if(page==="train
 function completeTraining(){
  if(state.trainingDone){toast("This week is already completed. Advance to the next week.");return}
  if(state.trainingPlan.length===0){toast("Plan at least one session first.");return}
- let gained={};let energyChange=0;const coachBoost={none:1,assistant:1.1,specialist:1.2,elite:1.3}[state.coach]||1;state.trainingPlan.forEach(id=>{const s=sessionTypes.find(x=>x.id===id);Object.entries(s.attrs).forEach(([k,v])=>gained[k]=(gained[k]||0)+v);energyChange-=s.energy});
- Object.entries(gained).forEach(([k,v])=>state.attributes[k]=Math.min(100,state.attributes[k]+Math.max(1,Math.round(v*coachBoost))));
+ let gained={};let energyChange=0;const coachBoost={none:1,assistant:1.03,specialist:1.06,elite:1.1}[state.coach]||1;state.trainingPlan.forEach(id=>{const s=sessionTypes.find(x=>x.id===id);Object.entries(s.attrs).forEach(([k,v])=>gained[k]=(gained[k]||0)+v);energyChange-=s.energy});
+ Object.entries(gained).forEach(([k,v])=>{state.developmentXP[k]=(state.developmentXP[k]||0)+v*0.22*coachBoost;const whole=Math.floor(state.developmentXP[k]);if(whole>0){state.attributes[k]=Math.min(100,state.attributes[k]+whole);state.developmentXP[k]-=whole}});
  state.energy=Math.max(15,Math.min(100,state.energy+energyChange));state.fitness=Math.min(100,state.fitness+(state.trainingPlan.some(x=>x==="physical")?3:1));state.form=Math.max(20,Math.min(100,state.form+2));state.morale=Math.min(100,state.morale+1);
  const n=state.trainingPlan.length;state.lastFocus=n>=4?"Consistent work builds champions":n>=2?"A productive week of development":"A lighter week to stay sharp";
  log("Training week completed",n+" sessions · "+Object.keys(gained).join(", ")+" improved");state.completedWeeks++;state.trainingDone=true;if(state.week>52){state.week=1;state.year++;state.player.age++;state.results=[];state.entered=[];log("New season begins","Welcome to season "+state.year)}
@@ -146,7 +152,7 @@ function completeTraining(){
 function renderAll(){if(!state.player)return;renderOverview();renderAttributes();renderTraining();renderCalendar();renderTournaments();renderProfile();renderWorld();renderFinances();renderManagement();renderSelection();renderHistory()}
 
 const rivals=[{name:"Luca Moretti",country:"Italy",rank:82,points:1840,level:72,age:18},{name:"Emil Sørensen",country:"Denmark",rank:116,points:1510,level:68,age:17},{name:"Hugo Martin",country:"France",rank:143,points:1290,level:65,age:19},{name:"Daniel Kim",country:"South Korea",rank:188,points:1080,level:62,age:18},{name:"Rafael Costa",country:"Brazil",rank:224,points:940,level:59,age:17},{name:"Milan Novak",country:"Czechia",rank:281,points:790,level:56,age:18},{name:"Arjun Patel",country:"India",rank:337,points:650,level:54,age:16}];
-function addLedger(label,amount){state.ledger.unshift({week:state.week,label,amount});state.ledger=state.ledger.slice(0,30)}
+function addLedger(label,amount,account="personal"){state.ledger.unshift({week:state.week,label,amount,account});state.ledger=state.ledger.slice(0,40)}
 function renderWorld(){
  const list=[...rivals.map(r=>({...r,player:false})),{name:state.player.name,country:state.player.country,rank:state.ranking,points:state.points,level:Math.round(Object.values(state.attributes).reduce((x,y)=>x+y,0)/6),age:state.player.age,player:true}].sort((x,y)=>x.rank-y.rank);
  $("world-summary").innerHTML='<div class="summary-tile"><span>YOUR WORLD RANK</span><b>#'+state.ranking.toLocaleString("en-US")+'</b></div><div class="summary-tile"><span>RANKING POINTS</span><b>'+state.points.toLocaleString("en-US")+'</b></div><div class="summary-tile"><span>RIVALS TRACKED</span><b>'+rivals.length+'</b></div>';
@@ -157,7 +163,35 @@ function renderFinances(){
  $("finance-balance").textContent="€"+state.money.toLocaleString("en-US");$("finance-prizes").textContent="€"+state.prizeTotal.toLocaleString("en-US");$("finance-income").textContent="€"+state.weeklyIncome.toLocaleString("en-US");$("finance-costs").textContent="€"+state.weeklyCosts.toLocaleString("en-US");
  $("finance-ledger").innerHTML=state.ledger.length?state.ledger.slice(0,15).map(x=>'<div class="ledger-row"><span><b>'+x.label+'</b><small>Week '+x.week+'</small></span><strong class="'+(x.amount<0?"negative":"positive")+'">'+(x.amount<0?"−":"+")+'€'+Math.abs(x.amount).toLocaleString("en-US")+'</strong></div>').join(""):'<p class="muted">Your financial activity will appear here as your career develops.</p>';
 }
+
+const staffRoles=[
+ {id:"doubles",title:"Doubles specialist",salary:95,people:[{name:"Miguel Ferreira",detail:"Doubles tactics · Portugal"},{name:"André Silva",detail:"Rotation and front-court play · Portugal"}]},
+ {id:"physical",title:"Physical trainer",salary:85,people:[{name:"Rui Carvalho",detail:"Strength and conditioning · Portugal"},{name:"Pedro Martins",detail:"Speed and power development · Portugal"}]},
+ {id:"physio",title:"Physiotherapist",salary:75,people:[{name:"Inês Matos",detail:"Sports physiotherapy · Portugal"},{name:"Mariana Lopes",detail:"Recovery and injury prevention · Portugal"}]},
+ {id:"psychologist",title:"Sports psychologist",salary:80,people:[{name:"Sofia Costa",detail:"Performance psychology · Portugal"},{name:"Beatriz Almeida",detail:"Competition routines and focus · Portugal"}]}
+];
+const sponsorCatalogue=[
+ {id:"rallypro",name:"RallyPro",signing:450,weekly:85,duration:16,description:"Equipment and competition support"},
+ {id:"shuttleworks",name:"ShuttleWorks",signing:700,weekly:55,duration:20,description:"Long-term development partnership"},
+ {id:"courtline",name:"Courtline",signing:250,weekly:145,duration:12,description:"High-performance team funding"}
+];
+function ensureSponsorOffers(){if(!state.sponsorOffers.length)state.sponsorOffers=sponsorCatalogue.filter(x=>!state.sponsorContracts.some(c=>c.id===x.id)).map(x=>({...x}));}
+function acceptSponsor(id){const offer=state.sponsorOffers.find(x=>x.id===id);if(!offer)return;if(state.sponsorContracts.length>=2){toast("Your team can have up to two active sponsors.");return}state.teamBudget+=offer.signing;state.sponsorContracts.push({...offer,weeksLeft:offer.duration});state.sponsorOffers=state.sponsorOffers.filter(x=>x.id!==id);addLedger("Team sponsor: "+offer.name,offer.signing,"team");log("Sponsorship signed",offer.name+" · €"+offer.signing+" initial team funding");save();renderAll();toast(offer.name+" is now sponsoring your team.");}
+function hireStaff(roleId,personIndex){const role=staffRoles.find(x=>x.id===roleId),person=role&&role.people[personIndex];if(!role||!person)return;if(state.staff[roleId]){toast("You already have someone in this role.");return}if(state.teamBudget<role.salary*4){toast("Your team budget needs at least four weeks of salary. Secure sponsorship first.");return}state.staff[roleId]={name:person.name,detail:person.detail,salary:role.salary};state.teamBudget-=role.salary*4;addLedger("Staff signing reserve: "+role.title,-role.salary*4,"team");log("Staff hired",role.title+" · "+person.name);save();renderAll();toast(person.name+" joined your technical team.");}
+function dismissStaff(roleId){if(!state.staff[roleId])return;const person=state.staff[roleId];delete state.staff[roleId];log("Staff departure",person.name+" left the technical team.");save();renderAll();toast("Staff contract ended.");}
+function renderTeamManagement(){
+ ensureSponsorOffers();
+ $("team-budget").textContent="€"+state.teamBudget.toLocaleString("en-US");
+ $("team-staff-cost").textContent="€"+Object.values(state.staff).reduce((sum,x)=>sum+x.salary,0).toLocaleString("en-US")+"/week payroll";
+ $("staff-roles").innerHTML=staffRoles.map(role=>{const current=state.staff[role.id],options=role.people.map((p,i)=>'<option value="'+i+'">'+p.name+' — '+p.detail+'</option>').join("");return '<div class="staff-role-card"><div><b>'+role.title+'</b><small>'+(current?current.name+" · "+current.detail:"Available candidates")+'</small></div><strong>€'+role.salary+'/wk</strong>'+(current?'<button class="staff-action" data-dismiss="'+role.id+'">RELEASE</button>':'<div class="staff-hire-row"><select id="staff-'+role.id+'" class="wide-select">'+options+'</select><button class="staff-action" data-hire="'+role.id+'">HIRE</button></div>')+'</div>'}).join("");
+ document.querySelectorAll("[data-hire]").forEach(btn=>btn.addEventListener("click",()=>hireStaff(btn.dataset.hire,Number($("staff-"+btn.dataset.hire).value))));
+ document.querySelectorAll("[data-dismiss]").forEach(btn=>btn.addEventListener("click",()=>dismissStaff(btn.dataset.dismiss)));
+ $("sponsor-contracts").innerHTML=state.sponsorContracts.length?state.sponsorContracts.map(c=>'<div class="sponsor-contract"><span><b>'+c.name+'</b><small>€'+c.weekly+'/week · '+c.weeksLeft+' weeks remaining</small></span><strong class="positive">ACTIVE</strong></div>').join(""):'<p class="muted">No active sponsors. Accept a proposal to start funding your technical team.</p>';
+ $("sponsor-offers").innerHTML=state.sponsorOffers.length?state.sponsorOffers.map(o=>'<div class="sponsor-offer"><div><b>'+o.name+'</b><small>'+o.description+'</small></div><div class="sponsor-money"><strong>€'+o.signing+'</strong><small>signing bonus</small><strong>€'+o.weekly+'/week</strong><small>'+o.duration+' weeks</small></div><button class="secondary-btn" data-sponsor="'+o.id+'">ACCEPT PROPOSAL</button></div>').join(""):'<p class="muted">No new proposals at the moment.</p>';
+ document.querySelectorAll("[data-sponsor]").forEach(btn=>btn.addEventListener("click",()=>acceptSponsor(btn.dataset.sponsor)));
+}
 function renderManagement(){
+ renderTeamManagement();
  const clubs={independent:["Independent","You manage your career without club support."],local:["Local club","A stable training environment and basic support."],academy:["Performance academy","Structured development, better facilities and coaching access."],elite:["Elite training centre","High-performance environment with premium support."]};
  const coaches={none:["No personal coach","Your development relies on your own planning."],assistant:["Development coach","Regular feedback and a small boost to training gains."],specialist:["Performance coach","Specialist guidance and improved training progression."],elite:["Elite coach","High-level individual support and stronger development gains."]};
  $("club-select").value=state.club;$("coach-select").value=state.coach;$("club-name").textContent=clubs[state.club][0];$("club-description").textContent=clubs[state.club][1];$("coach-name").textContent=coaches[state.coach][0];$("coach-description").textContent=coaches[state.coach][1];
@@ -177,11 +211,12 @@ function renderHistory(){
 function advanceWeek(){
  if(!state.player)return;
  if(state.activeTournament){toast("Finish your tournament match before advancing the week.");goTo("tournaments");return}
- const due=tournaments.find(t=>t.week===state.week&&!state.results.some(r=>r.id===t.id));
+ const due=visibleTournaments().find(t=>t.week===state.week&&!state.results.some(r=>r.id===t.id));
  if(due){toast("You have a tournament this week. Play it before advancing.");goTo("tournaments");return}
  if(!state.trainingDone){toast("Complete your training week before advancing.");return}
  const clubCost={independent:0,local:35,academy:90,elite:180}[state.club]||0;const coachCost={none:0,assistant:45,specialist:100,elite:190}[state.coach]||0;
  state.weeklyIncome=75;state.weeklyCosts=clubCost+coachCost+25;state.money+=state.weeklyIncome-state.weeklyCosts;addLedger("Player development support",state.weeklyIncome);addLedger("Weekly career expenses",-state.weeklyCosts);
+ let sponsorIncome=0;state.sponsorContracts=state.sponsorContracts.filter(c=>c.weeksLeft>0);state.sponsorContracts.forEach(c=>{sponsorIncome+=c.weekly;c.weeksLeft--});state.teamBudget+=sponsorIncome;if(sponsorIncome)addLedger("Sponsorship income",sponsorIncome,"team");const payroll=Object.values(state.staff).reduce((sum,x)=>sum+x.salary,0);if(payroll){state.teamBudget-=payroll;addLedger("Technical team payroll",-payroll,"team");}
  state.energy=Math.min(100,state.energy+18);state.form=Math.min(100,state.form+2);state.morale=Math.max(20,Math.min(100,state.morale+(state.money>=0?1:-3)));
  if(!state.callups.length&&(state.ranking<=500||state.points>=900)&&Math.random()<.55){const c={title:"National team training camp",year:state.year,week:state.week};state.callups.push(c);log("National team call-up",c.title+" · "+state.player.country)}
  log("Week "+state.week+" completed","Recovery, finances and season progression updated");state.trainingDone=false;state.week++;
