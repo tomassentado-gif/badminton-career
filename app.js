@@ -16,10 +16,10 @@ const sessionTypes = [
  {id:"match",name:"Match practice",desc:"Pressure, consistency and competition rhythm",icon:"♜",energy:14,attrs:{Technique:1,Mental:2,Tactics:1},type:"Court"},
  {id:"recovery",name:"Recovery & mobility",desc:"Restore energy and protect your condition",icon:"＋",energy:-30,attrs:{Stamina:1},type:"Recovery"}
 ];
-const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:1500,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,trainingDone:false,club:"independent",coach:"none",weeklyIncome:0,weeklyCosts:0,prizeTotal:0,callups:[],ledger:[],attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],lastFocus:"Build your foundations"});
+const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:1500,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,trainingDone:false,club:"independent",coach:"none",weeklyIncome:0,weeklyCosts:0,prizeTotal:0,callups:[],ledger:[],attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],activeTournament:null,lastFocus:"Build your foundations"});
 let state = loadState() || freshState();
 state=Object.assign(freshState(),state,{attributes:Object.assign(freshState().attributes,state.attributes||{})});
-state.callups=state.callups||[];state.ledger=state.ledger||[];state.trainingDone=!!state.trainingDone;state.club=state.club||"independent";state.coach=state.coach||"none";state.weeklyIncome=state.weeklyIncome||0;state.weeklyCosts=state.weeklyCosts||0;state.prizeTotal=state.prizeTotal||0;
+state.callups=state.callups||[];state.ledger=state.ledger||[];state.trainingDone=!!state.trainingDone;state.club=state.club||"independent";state.coach=state.coach||"none";state.weeklyIncome=state.weeklyIncome||0;state.weeklyCosts=state.weeklyCosts||0;state.prizeTotal=state.prizeTotal||0;state.activeTournament=state.activeTournament||null;
 function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));$("save-indicator").textContent="● SAVED"}catch(e){$("save-indicator").textContent="● SAVE ERROR"}}
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2400)}
@@ -61,8 +61,71 @@ function renderCalendar(){
 }
 function renderTournaments(){
  const available=tournaments.filter(t=>t.week>=state.week&&!state.results.some(r=>r.id===t.id));$("events-count").textContent=available.length+" EVENTS";
- $("tournament-list").innerHTML=tournaments.map(t=>{const result=state.results.find(r=>r.id===t.id);const missed=t.week<state.week&&!result;const disabled=!!result||missed||state.energy<25;return '<article class="tournament-card"><div class="tournament-card-top"><span class="tier-tag">'+t.tier.toUpperCase()+' · '+t.level.toUpperCase()+'</span><span class="week-label">WEEK '+String(t.week).padStart(2,"0")+'</span></div><h2>'+t.name+'</h2><p>'+t.city+', '+t.country+' · '+shortDate(t.week)+'</p><div class="tournament-facts"><span><b>'+t.points+'</b> pts</span><span><b>€'+t.prize+'</b> prize</span><span><b>'+t.energy+'%</b> energy</span></div>'+(result?'<div class="event-status">'+result.outcome+' · '+result.stage+'</div>':missed?'<div class="event-status completed">EVENT MISSED</div>':'<button class="secondary-btn enter-event" data-event="'+t.id+'" '+(disabled?'disabled':'')+'>ENTER TOURNAMENT <span>↗</span></button>')+'</article>'}).join("");
+ renderLiveTournament();
+ $("tournament-list").innerHTML=tournaments.map(t=>{const result=state.results.find(r=>r.id===t.id);const missed=t.week<state.week&&!result;const due=t.week===state.week;const disabled=!!result||missed||!due||state.energy<15||!!state.activeTournament;return '<article class="tournament-card"><div class="tournament-card-top"><span class="tier-tag">'+t.tier.toUpperCase()+' · '+t.level.toUpperCase()+'</span><span class="week-label">WEEK '+String(t.week).padStart(2,"0")+'</span></div><h2>'+t.name+'</h2><p>'+t.city+', '+t.country+' · '+shortDate(t.week)+'</p><div class="tournament-facts"><span><b>'+t.points+'</b> pts</span><span><b>€'+t.prize+'</b> prize</span><span><b>'+t.energy+'%</b> energy</span></div>'+(result?'<div class="event-status">'+result.outcome+' · '+result.stage+'</div>':missed?'<div class="event-status completed">EVENT MISSED</div>':state.activeTournament&&state.activeTournament.id===t.id?'<div class="event-status">TOURNAMENT IN PROGRESS</div>':'<button class="secondary-btn enter-event" data-event="'+t.id+'" '+(disabled?'disabled':'')+'>'+(due?'START TOURNAMENT':'AVAILABLE IN WEEK '+t.week)+' <span>↗</span></button>')+'</article>'}).join("");
  document.querySelectorAll(".enter-event").forEach(btn=>btn.addEventListener("click",()=>enterTournament(btn.dataset.event)));
+}
+const tournamentOpponents=[
+ {name:"Luca Moretti",country:"Italy",rating:72},{name:"Emil Sørensen",country:"Denmark",rating:68},{name:"Hugo Martin",country:"France",rating:65},{name:"Daniel Kim",country:"South Korea",rating:62},{name:"Rafael Costa",country:"Brazil",rating:59},{name:"Milan Novak",country:"Czechia",rating:56},{name:"Arjun Patel",country:"India",rating:54},{name:"Noah Williams",country:"England",rating:61},{name:"Mateo García",country:"Spain",rating:58},{name:"Kenji Sato",country:"Japan",rating:70},{name:"Tiago Almeida",country:"Portugal",rating:52},{name:"Jonas Berg",country:"Sweden",rating:64}
+];
+function opponentForRound(round){const avg=Object.values(state.attributes).reduce((a,b)=>a+b,0)/6;const pool=tournamentOpponents.filter(o=>Math.abs(o.rating-(avg+(round-1)*2))<18);const choices=pool.length?pool:tournamentOpponents;return {...choices[Math.floor(Math.random()*choices.length)]}}
+function enterTournament(id){
+ const t=eventById(id);if(!t||state.activeTournament)return;
+ if(t.week!==state.week){toast("You can only start this tournament during its scheduled week.");return}
+ if(state.energy<15){toast("Recover some energy before entering this tournament.");return}
+ state.energy=Math.max(5,state.energy-t.energy);
+ state.activeTournament={id:t.id,round:0,opponent:opponentForRound(1),playerGames:0,opponentGames:0,gamePlayer:0,gameOpponent:0,games:[],rallies:[],completedMatches:[]};
+ log("Tournament started",t.name+" · Draw confirmed");save();renderAll();goTo("tournaments");toast("Draw ready. Your first match is waiting.");
+}
+function matchStage(round){return ["Quarter-final","Semi-final","Final"][round]||"Final"}
+function rallyWonByPlayer(m){
+ const avg=Object.values(state.attributes).reduce((a,b)=>a+b,0)/6;
+ const advantage=(avg-m.opponent.rating)*.012+(state.attributes.Technique-50)*.0015+(state.attributes.Mental-50)*.001;
+ return Math.random()<Math.max(.25,Math.min(.75,.5+advantage));
+}
+function playRally(){
+ const m=state.activeTournament;if(!m)return;
+ const playerWon=rallyWonByPlayer(m);
+ if(playerWon)m.gamePlayer++;else m.gameOpponent++;
+ m.rallies.unshift({score:m.gamePlayer+"-"+m.gameOpponent,winner:playerWon?"You":m.opponent.name});
+ const high=Math.max(m.gamePlayer,m.gameOpponent),low=Math.min(m.gamePlayer,m.gameOpponent);
+ if((high>=21&&high-low>=2)||high===30){
+  const playerGame=m.gamePlayer>m.gameOpponent;
+  m.games.push({you:m.gamePlayer,opponent:m.gameOpponent});
+  if(playerGame)m.playerGames++;else m.opponentGames++;
+  m.completedMatches.push({opponent:m.opponent.name,score:m.games.map(g=>g.you+"-"+g.opponent).join(", "),won:playerGame});
+  m.gamePlayer=0;m.gameOpponent=0;
+  if(m.playerGames===2||m.opponentGames===2){completeTournamentMatch(m.playerGames===2);return}
+ }
+ save();renderAll();
+}
+function completeTournamentMatch(won){
+ const m=state.activeTournament,stage=matchStage(m.round),score=m.games.map(g=>g.you+"-"+g.opponent).join(", ");
+ if(!won){state.losses++;finishTournament(stage,false,score);return}
+ state.wins++;state.attributes.Mental=Math.min(100,state.attributes.Mental+1);
+ if(m.round===2){finishTournament("Winner",true,score);return}
+ log(stage+" won","Defeated "+m.completedMatches[m.completedMatches.length-1].opponent+" · "+score);
+ m.round++;m.opponent=opponentForRound(m.round+1);m.playerGames=0;m.opponentGames=0;m.gamePlayer=0;m.gameOpponent=0;m.games=[];m.rallies=[];
+ save();renderAll();toast("You won! Next: "+matchStage(m.round));
+}
+function finishTournament(stage,won,score){
+ const m=state.activeTournament,t=eventById(m.id);
+ const multiplier=won?1:(stage==="Semi-final"?0.48:0.25);
+ const earned=Math.round(t.points*multiplier),prize=won?t.prize:Math.round(t.prize*(stage==="Semi-final"?0.3:0.12));
+ state.points+=earned;state.money+=prize;state.prizeTotal+=prize;state.ledger.unshift({week:state.week,label:t.name+" prize money",amount:prize,type:"income"});
+ const travelCost=Math.round(t.energy*2.5);state.money-=travelCost;state.ledger.unshift({week:state.week,label:t.name+" travel & entry",amount:-travelCost,type:"expense"});
+ if(won){state.ranking=Math.max(1,state.ranking-Math.max(2,Math.round(earned/4)));state.form=Math.min(100,state.form+5);state.morale=Math.min(100,state.morale+6)}
+ else{state.ranking+=Math.max(1,Math.round(t.points/100));state.form=Math.max(20,state.form-4);state.morale=Math.max(15,state.morale-5)}
+ state.results.push({id:t.id,outcome:won?"CHAMPION":stage.toUpperCase(),stage,earned,prize,matchScores:m.completedMatches});
+ log(t.name+": "+(won?"CHAMPION":stage.toUpperCase()),"Tournament result · "+earned+" ranking points · €"+prize);
+ state.activeTournament=null;save();renderAll();goTo("tournaments");toast(won?"Tournament champion!":"Tournament completed.");
+}
+function renderLiveTournament(){
+ const root=$("tournament-live");if(!root)return;const m=state.activeTournament;
+ if(!m){root.innerHTML="";return}
+ const t=eventById(m.id),stage=matchStage(m.round),sets=m.games.map(g=>'<span class="set-score">'+g.you+'–'+g.opponent+'</span>').join("");
+ root.innerHTML='<section class="panel live-match-panel"><div class="live-match-head"><div><p class="eyebrow">LIVE TOURNAMENT · '+t.name.toUpperCase()+'</p><h2>'+stage+'</h2><p class="muted">Best of three games · '+state.player.discipline+'</p></div><span class="live-label"><i></i> LIVE MATCH</span></div><div class="match-players"><div class="match-player you"><small>YOU</small><b>'+state.player.name+'</b><span>'+state.player.country+'</span></div><div class="match-vs">VS</div><div class="match-player"><small>OPPONENT</small><b>'+m.opponent.name+'</b><span>'+m.opponent.country+' · level '+m.opponent.rating+'</span></div></div><div class="scoreboard"><div class="score-main"><div><small>GAMES</small><b>'+m.playerGames+' – '+m.opponentGames+'</b></div><div><small>CURRENT GAME</small><b>'+m.gamePlayer+' – '+m.gameOpponent+'</b></div></div><div class="set-scores">'+sets+'</div></div><div class="rally-controls"><button class="primary-btn" id="play-rally">PLAY NEXT RALLY <span>→</span></button><span class="muted">Each click simulates one rally.</span></div><div class="rally-feed"><b>RALLY-BY-RALLY</b>'+(m.rallies.length?m.rallies.slice(0,8).map(r=>'<div><span>'+r.winner+' wins rally</span><strong>'+r.score+'</strong></div>').join(""):'<p class="muted">The match is ready. Play the first rally.</p>')+'</div><div class="completed-match-list"><b>TOURNAMENT PROGRESS</b>'+m.completedMatches.map(x=>'<div><span>'+x.opponent+'</span><strong>'+x.score+' · '+(x.won?"W":"L")+'</strong></div>').join("")+'</div></section>';
+ $("play-rally").addEventListener("click",playRally);
 }
 function renderProfile(){
  $("profile-name").textContent=state.player.name;$("profile-subtitle").textContent=state.player.age+" years old · "+state.player.country;$("profile-country").textContent=state.player.country;$("profile-discipline").textContent=state.player.discipline;$("profile-level").textContent=currentLevel();
@@ -79,20 +142,6 @@ function completeTraining(){
  const n=state.trainingPlan.length;state.lastFocus=n>=4?"Consistent work builds champions":n>=2?"A productive week of development":"A lighter week to stay sharp";
  log("Training week completed",n+" sessions · "+Object.keys(gained).join(", ")+" improved");state.completedWeeks++;state.trainingDone=true;if(state.week>52){state.week=1;state.year++;state.player.age++;state.results=[];state.entered=[];log("New season begins","Welcome to season "+state.year)}
  state.trainingPlan=["technical","physical","tactical","match","recovery"];save();renderAll();goTo("overview");toast("Training complete. Review your week, then advance.");
-}
-function enterTournament(id){
- const t=eventById(id);if(!t)return;if(state.energy<t.energy){toast("Not enough energy for this event. Recover before competing.");return}
- if(t.week>state.week){toast("This tournament is not open yet. Advance your training weeks first.");return}
- const avg=Object.values(state.attributes).reduce((a,b)=>a+b,0)/6;
- const readiness=avg+(state.form-50)*.12+(state.fitness-70)*.08+(state.morale-70)*.08;
- const chance=Math.max(.12,Math.min(.82,.48+(readiness-t.difficulty)*.018));
- const roll=Math.random();let outcome,stage,won;
- if(roll<chance*.22){won=true;stage="Winner";outcome="CHAMPION";}else if(roll<chance*.48){won=true;stage="Final";outcome="FINALIST";}else if(roll<chance*.72){won=true;stage="Semi-final";outcome="SEMI-FINAL";}else if(roll<chance){won=true;stage="Quarter-final";outcome="QUARTER-FINAL";}else{won=false;stage="Early rounds";outcome="EARLY EXIT";}
- const earned=won?Math.round(t.points*(stage==="Winner"?1:stage==="Final"? .72:stage==="Semi-final"? .48:.25)):Math.round(t.points*.05);
- const prize=won?Math.round(t.prize*(stage==="Winner"?1:stage==="Final"? .6:stage==="Semi-final"? .3:.12)):0;
- state.energy=Math.max(8,state.energy-t.energy);state.form=Math.max(20,Math.min(100,state.form+(won?5:-5)));state.morale=Math.max(15,Math.min(100,state.morale+(won?6:-7)));state.points+=earned;state.money+=prize;state.prizeTotal+=prize;state.ledger.unshift({week:state.week,label:t.name+" prize money",amount:prize,type:"income"});const travelCost=Math.round(t.energy*2.5);state.money-=travelCost;state.ledger.unshift({week:state.week,label:t.name+" travel & entry",amount:-travelCost,type:"expense"});
- if(won){state.wins++;state.ranking=Math.max(1,state.ranking-Math.max(2,Math.round(earned/4)));state.attributes.Mental=Math.min(100,state.attributes.Mental+1)}else{state.losses++;state.ranking+=Math.max(1,Math.round(t.points/100))}
- state.results.push({id:t.id,outcome,stage,earned,prize});state.entered.push(id);log(t.name+": "+outcome,stage+" · +"+earned+" points · €"+prize);save();renderAll();goTo("tournaments");toast(t.name+": "+outcome+"!");
 }
 function renderAll(){if(!state.player)return;renderOverview();renderAttributes();renderTraining();renderCalendar();renderTournaments();renderProfile();renderWorld();renderFinances();renderManagement();renderSelection();renderHistory()}
 
@@ -126,7 +175,11 @@ function renderHistory(){
  $("history-results").innerHTML=state.results.length?state.results.map(r=>{const t=eventById(r.id);return '<div class="ledger-row"><span><b>'+(t?t.name:r.id)+'</b><small>'+r.stage+'</small></span><strong class="'+(r.outcome==="CHAMPION"?"positive":"")+'">'+r.outcome+'</strong></div>'}).join(""):'<p class="muted">No tournament results recorded yet.</p>';
 }
 function advanceWeek(){
- if(!state.player)return;if(!state.trainingDone){toast("Complete your training week before advancing.");return}
+ if(!state.player)return;
+ if(state.activeTournament){toast("Finish your tournament match before advancing the week.");goTo("tournaments");return}
+ const due=tournaments.find(t=>t.week===state.week&&!state.results.some(r=>r.id===t.id));
+ if(due){toast("You have a tournament this week. Play it before advancing.");goTo("tournaments");return}
+ if(!state.trainingDone){toast("Complete your training week before advancing.");return}
  const clubCost={independent:0,local:35,academy:90,elite:180}[state.club]||0;const coachCost={none:0,assistant:45,specialist:100,elite:190}[state.coach]||0;
  state.weeklyIncome=75;state.weeklyCosts=clubCost+coachCost+25;state.money+=state.weeklyIncome-state.weeklyCosts;addLedger("Player development support",state.weeklyIncome);addLedger("Weekly career expenses",-state.weeklyCosts);
  state.energy=Math.min(100,state.energy+18);state.form=Math.min(100,state.form+2);state.morale=Math.max(20,Math.min(100,state.morale+(state.money>=0?1:-3)));
