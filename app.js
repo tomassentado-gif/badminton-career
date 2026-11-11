@@ -47,7 +47,7 @@ function renderOverview(){
 }
 function renderTraining(){
  $("training-week").textContent="WEEK "+String(state.week).padStart(2,"0");$("training-energy-meter").style.width=state.energy+"%";$("training-energy-value").textContent=state.energy+"%";
- $("session-list").innerHTML=sessionTypes.map(s=>{const selected=state.trainingPlan.includes(s.id);return '<button class="session-option '+(selected?"selected":"")+'" data-session="'+s.id+'"><span class="session-icon">'+s.icon+'</span><span><b>'+s.name+'</b><small>'+s.desc+'</small></span><span class="session-meta">'+s.type+'<br>'+(s.energy<0?"+"+Math.abs(s.energy):"-"+s.energy)+"% energy</span></button>'}).join("");
+ $("session-list").innerHTML=sessionTypes.map(s=>{const selected=state.trainingPlan.includes(s.id);return '<button class="session-option '+(selected?"selected":"")+'" data-session="'+s.id+'"><span class="session-icon">'+s.icon+'</span><span><b>'+s.name+'</b><small>'+s.desc+'</small></span><span class="session-meta">'+s.type+'<br>'+(s.energy<0?"+"+Math.abs(s.energy):"-"+s.energy)+"% energy</span></button>"}).join("");
  $("training-summary").textContent=state.trainingPlan.length+" of 5 sessions planned";
  document.querySelectorAll(".session-option").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.session;const index=state.trainingPlan.indexOf(id);if(index>=0)state.trainingPlan.splice(index,1);else if(state.trainingPlan.length<5)state.trainingPlan.push(id);else{toast("Your week is full. Remove a session first.");return}save();renderTraining();renderOverview()}));
 }
