@@ -16,7 +16,7 @@ const sessionTypes = [
  {id:"match",name:"Match practice",desc:"Pressure, consistency and competition rhythm",icon:"♜",energy:14,attrs:{Technique:1,Mental:2,Tactics:1},type:"Court"},
  {id:"recovery",name:"Recovery & mobility",desc:"Restore energy and protect your condition",icon:"＋",energy:-30,attrs:{Stamina:1},type:"Recovery"}
 ];
-const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:0,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,trainingDone:false,club:"independent",coach:"none",weeklyIncome:0,weeklyCosts:0,prizeTotal:0,callups:[],ledger:[],attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],lastFocus:"Build your foundations"});
+const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:1500,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,trainingDone:false,club:"independent",coach:"none",weeklyIncome:0,weeklyCosts:0,prizeTotal:0,callups:[],ledger:[],attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],lastFocus:"Build your foundations"});
 let state = loadState() || freshState();
 state=Object.assign(freshState(),state,{attributes:Object.assign(freshState().attributes,state.attributes||{})});
 state.callups=state.callups||[];state.ledger=state.ledger||[];state.trainingDone=!!state.trainingDone;state.club=state.club||"independent";state.coach=state.coach||"none";state.weeklyIncome=state.weeklyIncome||0;state.weeklyCosts=state.weeklyCosts||0;state.prizeTotal=state.prizeTotal||0;
@@ -71,9 +71,10 @@ function renderProfile(){
 }
 function renderPage(page){if(page==="overview")renderOverview();if(page==="training")renderTraining();if(page==="calendar")renderCalendar();if(page==="tournaments")renderTournaments();if(page==="profile")renderProfile();if(page==="world")renderWorld();if(page==="finances")renderFinances();if(page==="management")renderManagement();if(page==="selection")renderSelection();if(page==="history")renderHistory()}
 function completeTraining(){
+ if(state.trainingDone){toast("This week is already completed. Advance to the next week.");return}
  if(state.trainingPlan.length===0){toast("Plan at least one session first.");return}
- let gained={};let energyChange=0;state.trainingPlan.forEach(id=>{const s=sessionTypes.find(x=>x.id===id);Object.entries(s.attrs).forEach(([k,v])=>gained[k]=(gained[k]||0)+v);energyChange-=s.energy});
- Object.entries(gained).forEach(([k,v])=>state.attributes[k]=Math.min(100,state.attributes[k]+v));
+ let gained={};let energyChange=0;const coachBoost={none:1,assistant:1.1,specialist:1.2,elite:1.3}[state.coach]||1;state.trainingPlan.forEach(id=>{const s=sessionTypes.find(x=>x.id===id);Object.entries(s.attrs).forEach(([k,v])=>gained[k]=(gained[k]||0)+v);energyChange-=s.energy});
+ Object.entries(gained).forEach(([k,v])=>state.attributes[k]=Math.min(100,state.attributes[k]+Math.max(1,Math.round(v*coachBoost))));
  state.energy=Math.max(15,Math.min(100,state.energy+energyChange));state.fitness=Math.min(100,state.fitness+(state.trainingPlan.some(x=>x==="physical")?3:1));state.form=Math.max(20,Math.min(100,state.form+2));state.morale=Math.min(100,state.morale+1);
  const n=state.trainingPlan.length;state.lastFocus=n>=4?"Consistent work builds champions":n>=2?"A productive week of development":"A lighter week to stay sharp";
  log("Training week completed",n+" sessions · "+Object.keys(gained).join(", ")+" improved");state.completedWeeks++;state.trainingDone=true;if(state.week>52){state.week=1;state.year++;state.player.age++;state.results=[];state.entered=[];log("New season begins","Welcome to season "+state.year)}
@@ -127,7 +128,7 @@ function renderHistory(){
 function advanceWeek(){
  if(!state.player)return;if(!state.trainingDone){toast("Complete your training week before advancing.");return}
  const clubCost={independent:0,local:35,academy:90,elite:180}[state.club]||0;const coachCost={none:0,assistant:45,specialist:100,elite:190}[state.coach]||0;
- state.weeklyIncome=0;state.weeklyCosts=clubCost+coachCost+25;state.money+=state.weeklyIncome-state.weeklyCosts;addLedger("Weekly career expenses",-state.weeklyCosts);
+ state.weeklyIncome=75;state.weeklyCosts=clubCost+coachCost+25;state.money+=state.weeklyIncome-state.weeklyCosts;addLedger("Player development support",state.weeklyIncome);addLedger("Weekly career expenses",-state.weeklyCosts);
  state.energy=Math.min(100,state.energy+18);state.form=Math.min(100,state.form+2);state.morale=Math.max(20,Math.min(100,state.morale+(state.money>=0?1:-3)));
  if(!state.callups.length&&(state.ranking<=500||state.points>=900)&&Math.random()<.55){const c={title:"National team training camp",year:state.year,week:state.week};state.callups.push(c);log("National team call-up",c.title+" · "+state.player.country)}
  log("Week "+state.week+" completed","Recovery, finances and season progression updated");state.trainingDone=false;state.week++;
