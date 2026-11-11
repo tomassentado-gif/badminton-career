@@ -16,8 +16,10 @@ const sessionTypes = [
  {id:"match",name:"Match practice",desc:"Pressure, consistency and competition rhythm",icon:"♜",energy:14,attrs:{Technique:1,Mental:2,Tactics:1},type:"Court"},
  {id:"recovery",name:"Recovery & mobility",desc:"Restore energy and protect your condition",icon:"＋",energy:-30,attrs:{Stamina:1},type:"Recovery"}
 ];
-const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:0,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],lastFocus:"Build your foundations"});
+const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:0,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,trainingDone:false,club:"independent",coach:"none",weeklyIncome:0,weeklyCosts:0,prizeTotal:0,callups:[],ledger:[],attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],lastFocus:"Build your foundations"});
 let state = loadState() || freshState();
+state=Object.assign(freshState(),state,{attributes:Object.assign(freshState().attributes,state.attributes||{})});
+state.callups=state.callups||[];state.ledger=state.ledger||[];state.trainingDone=!!state.trainingDone;state.club=state.club||"independent";state.coach=state.coach||"none";state.weeklyIncome=state.weeklyIncome||0;state.weeklyCosts=state.weeklyCosts||0;state.prizeTotal=state.prizeTotal||0;
 function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));$("save-indicator").textContent="● SAVED"}catch(e){$("save-indicator").textContent="● SAVE ERROR"}}
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2400)}
@@ -67,15 +69,15 @@ function renderProfile(){
  const played=state.wins+state.losses,stats=[["Matches played",played],["Matches won",state.wins],["Win rate",played?Math.round(state.wins/played*100)+"%":"—"],["Ranking points",state.points],["Tournaments played",state.results.length],["Prize money","€"+state.money.toLocaleString("en-US")]];
  $("career-stats").innerHTML=stats.map(s=>'<div class="career-stat"><span>'+s[0].toUpperCase()+'</span><b>'+s[1]+'</b></div>').join("");
 }
-function renderPage(page){if(page==="overview")renderOverview();if(page==="training")renderTraining();if(page==="calendar")renderCalendar();if(page==="tournaments")renderTournaments();if(page==="profile")renderProfile()}
+function renderPage(page){if(page==="overview")renderOverview();if(page==="training")renderTraining();if(page==="calendar")renderCalendar();if(page==="tournaments")renderTournaments();if(page==="profile")renderProfile();if(page==="world")renderWorld();if(page==="finances")renderFinances();if(page==="management")renderManagement();if(page==="selection")renderSelection();if(page==="history")renderHistory()}
 function completeTraining(){
  if(state.trainingPlan.length===0){toast("Plan at least one session first.");return}
  let gained={};let energyChange=0;state.trainingPlan.forEach(id=>{const s=sessionTypes.find(x=>x.id===id);Object.entries(s.attrs).forEach(([k,v])=>gained[k]=(gained[k]||0)+v);energyChange-=s.energy});
  Object.entries(gained).forEach(([k,v])=>state.attributes[k]=Math.min(100,state.attributes[k]+v));
  state.energy=Math.max(15,Math.min(100,state.energy+energyChange));state.fitness=Math.min(100,state.fitness+(state.trainingPlan.some(x=>x==="physical")?3:1));state.form=Math.max(20,Math.min(100,state.form+2));state.morale=Math.min(100,state.morale+1);
  const n=state.trainingPlan.length;state.lastFocus=n>=4?"Consistent work builds champions":n>=2?"A productive week of development":"A lighter week to stay sharp";
- log("Training week completed",n+" sessions · "+Object.keys(gained).join(", ")+" improved");state.completedWeeks++;state.week++;if(state.week>52){state.week=1;state.year++;state.player.age++;state.results=[];state.entered=[];log("New season begins","Welcome to season "+state.year)}
- state.trainingPlan=["technical","physical","tactical","match","recovery"];save();renderAll();goTo("overview");toast("Training complete. Your attributes have improved.");
+ log("Training week completed",n+" sessions · "+Object.keys(gained).join(", ")+" improved");state.completedWeeks++;state.trainingDone=true;if(state.week>52){state.week=1;state.year++;state.player.age++;state.results=[];state.entered=[];log("New season begins","Welcome to season "+state.year)}
+ state.trainingPlan=["technical","physical","tactical","match","recovery"];save();renderAll();goTo("overview");toast("Training complete. Review your week, then advance.");
 }
 function enterTournament(id){
  const t=eventById(id);if(!t)return;if(state.energy<t.energy){toast("Not enough energy for this event. Recover before competing.");return}
@@ -87,12 +89,56 @@ function enterTournament(id){
  if(roll<chance*.22){won=true;stage="Winner";outcome="CHAMPION";}else if(roll<chance*.48){won=true;stage="Final";outcome="FINALIST";}else if(roll<chance*.72){won=true;stage="Semi-final";outcome="SEMI-FINAL";}else if(roll<chance){won=true;stage="Quarter-final";outcome="QUARTER-FINAL";}else{won=false;stage="Early rounds";outcome="EARLY EXIT";}
  const earned=won?Math.round(t.points*(stage==="Winner"?1:stage==="Final"? .72:stage==="Semi-final"? .48:.25)):Math.round(t.points*.05);
  const prize=won?Math.round(t.prize*(stage==="Winner"?1:stage==="Final"? .6:stage==="Semi-final"? .3:.12)):0;
- state.energy=Math.max(8,state.energy-t.energy);state.form=Math.max(20,Math.min(100,state.form+(won?5:-5)));state.morale=Math.max(15,Math.min(100,state.morale+(won?6:-7)));state.points+=earned;state.money+=prize;
+ state.energy=Math.max(8,state.energy-t.energy);state.form=Math.max(20,Math.min(100,state.form+(won?5:-5)));state.morale=Math.max(15,Math.min(100,state.morale+(won?6:-7)));state.points+=earned;state.money+=prize;state.prizeTotal+=prize;state.ledger.unshift({week:state.week,label:t.name+" prize money",amount:prize,type:"income"});const travelCost=Math.round(t.energy*2.5);state.money-=travelCost;state.ledger.unshift({week:state.week,label:t.name+" travel & entry",amount:-travelCost,type:"expense"});
  if(won){state.wins++;state.ranking=Math.max(1,state.ranking-Math.max(2,Math.round(earned/4)));state.attributes.Mental=Math.min(100,state.attributes.Mental+1)}else{state.losses++;state.ranking+=Math.max(1,Math.round(t.points/100))}
  state.results.push({id:t.id,outcome,stage,earned,prize});state.entered.push(id);log(t.name+": "+outcome,stage+" · +"+earned+" points · €"+prize);save();renderAll();goTo("tournaments");toast(t.name+": "+outcome+"!");
 }
-function renderAll(){if(!state.player)return;renderOverview();renderAttributes();renderTraining();renderCalendar();renderTournaments();renderProfile()}
+function renderAll(){if(!state.player)return;renderOverview();renderAttributes();renderTraining();renderCalendar();renderTournaments();renderProfile();renderWorld();renderFinances();renderManagement();renderSelection();renderHistory()}
+
+const rivals=[{name:"Luca Moretti",country:"Italy",rank:82,points:1840,level:72,age:18},{name:"Emil Sørensen",country:"Denmark",rank:116,points:1510,level:68,age:17},{name:"Hugo Martin",country:"France",rank:143,points:1290,level:65,age:19},{name:"Daniel Kim",country:"South Korea",rank:188,points:1080,level:62,age:18},{name:"Rafael Costa",country:"Brazil",rank:224,points:940,level:59,age:17},{name:"Milan Novak",country:"Czechia",rank:281,points:790,level:56,age:18},{name:"Arjun Patel",country:"India",rank:337,points:650,level:54,age:16}];
+function addLedger(label,amount){state.ledger.unshift({week:state.week,label,amount});state.ledger=state.ledger.slice(0,30)}
+function renderWorld(){
+ const list=[...rivals.map(r=>({...r,player:false})),{name:state.player.name,country:state.player.country,rank:state.ranking,points:state.points,level:Math.round(Object.values(state.attributes).reduce((x,y)=>x+y,0)/6),age:state.player.age,player:true}].sort((x,y)=>x.rank-y.rank);
+ $("world-summary").innerHTML='<div class="summary-tile"><span>YOUR WORLD RANK</span><b>#'+state.ranking.toLocaleString("en-US")+'</b></div><div class="summary-tile"><span>RANKING POINTS</span><b>'+state.points.toLocaleString("en-US")+'</b></div><div class="summary-tile"><span>RIVALS TRACKED</span><b>'+rivals.length+'</b></div>';
+ $("world-ranking").innerHTML=list.map(r=>'<div class="ranking-row '+(r.player?"you":"")+'"><b class="rank-number">#'+r.rank+'</b><span class="rank-player"><b>'+r.name+(r.player?" (YOU)":"")+'</b><small>'+r.country+' · Age '+r.age+'</small></span><span class="rank-points">'+r.points.toLocaleString("en-US")+' pts</span></div>').join("");
+ $("rival-list").innerHTML=rivals.slice(0,4).map(r=>'<div class="rival-card"><b>'+r.name+'</b><span>'+r.country+'</span><small>World #'+r.rank+' · '+r.points.toLocaleString("en-US")+' pts</small><div class="meter"><i style="width:'+r.level+'%"></i></div></div>').join("");
+}
+function renderFinances(){
+ $("finance-balance").textContent="€"+state.money.toLocaleString("en-US");$("finance-prizes").textContent="€"+state.prizeTotal.toLocaleString("en-US");$("finance-income").textContent="€"+state.weeklyIncome.toLocaleString("en-US");$("finance-costs").textContent="€"+state.weeklyCosts.toLocaleString("en-US");
+ $("finance-ledger").innerHTML=state.ledger.length?state.ledger.slice(0,15).map(x=>'<div class="ledger-row"><span><b>'+x.label+'</b><small>Week '+x.week+'</small></span><strong class="'+(x.amount<0?"negative":"positive")+'">'+(x.amount<0?"−":"+")+'€'+Math.abs(x.amount).toLocaleString("en-US")+'</strong></div>').join(""):'<p class="muted">Your financial activity will appear here as your career develops.</p>';
+}
+function renderManagement(){
+ const clubs={independent:["Independent","You manage your career without club support."],local:["Local club","A stable training environment and basic support."],academy:["Performance academy","Structured development, better facilities and coaching access."],elite:["Elite training centre","High-performance environment with premium support."]};
+ const coaches={none:["No personal coach","Your development relies on your own planning."],assistant:["Development coach","Regular feedback and a small boost to training gains."],specialist:["Performance coach","Specialist guidance and improved training progression."],elite:["Elite coach","High-level individual support and stronger development gains."]};
+ $("club-select").value=state.club;$("coach-select").value=state.coach;$("club-name").textContent=clubs[state.club][0];$("club-description").textContent=clubs[state.club][1];$("coach-name").textContent=coaches[state.coach][0];$("coach-description").textContent=coaches[state.coach][1];
+ $("career-objectives").innerHTML=[["Reach the top 500",state.ranking<=500],["Earn 1,000 ranking points",state.points>=1000],["Win a tournament",state.results.some(r=>r.outcome==="CHAMPION")],["Earn a national team call-up",state.callups.length>0]].map(x=>'<div class="objective-row"><span>'+x[0]+'</span><b class="'+(x[1]?"positive":"")+'">'+(x[1]?"COMPLETED":"IN PROGRESS")+'</b></div>').join("");
+}
+function renderSelection(){
+ const progress=Math.max(0,Math.min(100,Math.round((1400-state.ranking)/11)));const eligible=state.ranking<=500||state.points>=900;
+ $("selection-meter").style.width=progress+"%";$("selection-progress").textContent=progress+"%";
+ $("selection-status").textContent=state.callups.length?"National team experience":"Earn your first call-up";
+ $("selection-copy").textContent=eligible?"Your results have put you on the selectors' radar. You may receive a call-up at the end of a competitive week.":"Keep improving your ranking and collect points in higher-level tournaments. A top-500 ranking is a strong first milestone.";
+ $("selection-history").innerHTML=state.callups.length?state.callups.map(c=>'<div class="ledger-row"><span><b>'+c.title+'</b><small>Season '+c.year+' · Week '+c.week+'</small></span><strong class="positive">SELECTED</strong></div>').join(""):'<p class="muted">No national team selections yet.</p>';
+}
+function renderHistory(){
+ $("history-timeline").innerHTML=state.activity.length?state.activity.map(x=>'<div class="history-entry"><i></i><div><b>'+x.title+'</b><small>Season '+(x.year||state.year)+' · Week '+x.week+'</small><p>'+x.detail+'</p></div></div>').join(""):'<p class="muted">Your career timeline is waiting for its first milestone.</p>';
+ $("history-results").innerHTML=state.results.length?state.results.map(r=>{const t=eventById(r.id);return '<div class="ledger-row"><span><b>'+(t?t.name:r.id)+'</b><small>'+r.stage+'</small></span><strong class="'+(r.outcome==="CHAMPION"?"positive":"")+'">'+r.outcome+'</strong></div>'}).join(""):'<p class="muted">No tournament results recorded yet.</p>';
+}
+function advanceWeek(){
+ if(!state.player)return;if(!state.trainingDone){toast("Complete your training week before advancing.");return}
+ const clubCost={independent:0,local:35,academy:90,elite:180}[state.club]||0;const coachCost={none:0,assistant:45,specialist:100,elite:190}[state.coach]||0;
+ state.weeklyIncome=0;state.weeklyCosts=clubCost+coachCost+25;state.money+=state.weeklyIncome-state.weeklyCosts;addLedger("Weekly career expenses",-state.weeklyCosts);
+ state.energy=Math.min(100,state.energy+18);state.form=Math.min(100,state.form+2);state.morale=Math.max(20,Math.min(100,state.morale+(state.money>=0?1:-3)));
+ if(!state.callups.length&&(state.ranking<=500||state.points>=900)&&Math.random()<.55){const c={title:"National team training camp",year:state.year,week:state.week};state.callups.push(c);log("National team call-up",c.title+" · "+state.player.country)}
+ log("Week "+state.week+" completed","Recovery, finances and season progression updated");state.trainingDone=false;state.week++;
+ if(state.week>52){state.week=1;state.year++;state.player.age++;state.results=[];state.entered=[];log("New season begins","Welcome to season "+state.year)}
+ save();renderAll();goTo("overview");toast("Week advanced. Your next challenge awaits.");
+}
+function confirmClub(){const v=$("club-select").value;const cost={independent:0,local:35,academy:90,elite:180}[v];if(cost>state.money){toast("Not enough funds for this club.");return}state.club=v;log("Club arrangement updated","New affiliation: "+v);save();renderAll();toast("Club updated.");}
+function confirmCoach(){const v=$("coach-select").value;const cost={none:0,assistant:45,specialist:100,elite:190}[v];if(cost>state.money){toast("Not enough funds for this coach.");return}state.coach=v;log("Coaching team updated","New coach: "+v);save();renderAll();toast("Coaching team updated.");}
+
 $("create-form").addEventListener("submit",e=>{e.preventDefault();const name=$("player-name").value.trim();if(!name)return;const level=$("start-level").value;state=freshState();state.player={name,age:Number($("player-age").value),country:$("player-country").value,discipline:$("player-discipline").value};if(level==="talent"){Object.keys(state.attributes).forEach(k=>state.attributes[k]+=5);state.ranking=650;state.energy=90}else if(level==="challenger"){Object.keys(state.attributes).forEach(k=>state.attributes[k]+=9);state.ranking=320;state.energy=95;state.points=80}log("Career started",""+state.player.country+" · "+state.player.discipline);save();$("start-screen").classList.add("hidden");$("career-screen").classList.remove("hidden");renderAll();goTo("overview")});
+$("advance-week").addEventListener("click",advanceWeek);$("club-hire").addEventListener("click",confirmClub);$("coach-hire").addEventListener("click",confirmCoach);
 document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>goTo(b.dataset.page)));
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>goTo(b.dataset.goto)));
 $("complete-training").addEventListener("click",completeTraining);
