@@ -14,7 +14,7 @@ const sessionTypes = [
  {id:"physical",name:"Physical development",desc:"Speed, power and athletic capacity",icon:"↗",energy:16,attrs:{Speed:2,Power:2,Stamina:1},type:"Gym"},
  {id:"tactical",name:"Tactical preparation",desc:"Patterns, decisions and match plans",icon:"◎",energy:8,attrs:{Tactics:2,Mental:1},type:"Court"},
  {id:"match",name:"Match practice",desc:"Pressure, consistency and competition rhythm",icon:"♜",energy:14,attrs:{Technique:1,Mental:2,Tactics:1},type:"Court"},
- {id:"recovery",name:"Recovery & mobility",desc:"Restore energy and protect your condition",icon:"＋",energy:-18,attrs:{Stamina:1},type:"Recovery"}
+ {id:"recovery",name:"Recovery & mobility",desc:"Restore energy and protect your condition",icon:"＋",energy:-30,attrs:{Stamina:1},type:"Recovery"}
 ];
 const freshState = () => ({player:null,week:1,year:2026,energy:85,fitness:70,form:50,morale:70,wins:0,losses:0,money:0,points:0,ranking:1240,trainingPlan:["technical","physical","tactical","match","recovery"],completedWeeks:0,attributes:{Technique:48,Speed:45,Power:43,Stamina:46,Tactics:42,Mental:44},activity:[],entered:[],results:[],lastFocus:"Build your foundations"});
 let state = loadState() || freshState();
